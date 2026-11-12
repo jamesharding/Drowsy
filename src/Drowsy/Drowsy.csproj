@@ -1,0 +1,88 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net11.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+
+    <AssemblyName>Drowsy</AssemblyName>
+    <RootNamespace>Drowsy</RootNamespace>
+    <Version>1.0.0</Version>
+    <Product>Drowsy</Product>
+    <Description>Puts Windows to sleep when you're genuinely idle, even when audio drivers keep the system awake.</Description>
+
+    <ApplicationIcon>..\..\assets\Drowsy.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <!-- WinUI 3 (settings window only), unpackaged and framework-dependent: WinUI comes from the
+         shared Windows App Runtime that Microsoft installs and services, not from files shipped
+         with Drowsy. .NET itself is still self-contained. -->
+    <UseWinUI>true</UseWinUI>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <!-- The SDK's start-up code would connect every process to the Windows App Runtime. Only the
+         settings window needs it, so Program calls the bootstrapper there instead; the tray engine
+         never touches WinUI and works even when the runtime isn't installed. -->
+    <WindowsAppSdkAutoInitialize>false</WindowsAppSdkAutoInitialize>
+
+    <!-- Everything is written to be trimming/NativeAOT safe. -->
+    <IsAotCompatible>true</IsAotCompatible>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- Set by CI for releases (-p:OfficialBuild=true). Only official builds check for and install
+         updates; Debug builds, local publishes and CI builds of branches never do. -->
+    <OfficialBuild Condition="'$(OfficialBuild)' == ''">false</OfficialBuild>
+    <DefineConstants Condition="'$(OfficialBuild)' == 'true'">$(DefineConstants);OFFICIAL_BUILD</DefineConstants>
+  </PropertyGroup>
+
+  <!--
+    Local publish: self-contained, trimmed (no C++ toolchain needed):
+      dotnet publish -c Release
+    NativeAOT publish (needs VS C++ build tools; used in CI):
+      dotnet publish -c Release -p:PublishAot=true
+  -->
+  <PropertyGroup Condition="'$(PublishAot)' != 'true'">
+    <PublishTrimmed>true</PublishTrimmed>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(PublishAot)' == 'true'">
+    <OptimizationPreference>Size</OptimizationPreference>
+    <StackTraceSupport>false</StackTraceSupport>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Only the WinUI component (and what it depends on), not the full metapackage, which
+         also ships the AI/ML runtime (ONNX Runtime, DirectML), Widgets, Search, etc. (~100 MB). -->
+    <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.6.5" />
+    <!-- Framework-dependent: says which Windows App Runtime (2.6) to use, and provides the bootstrapper. -->
+    <PackageReference Include="Microsoft.WindowsAppSDK.Runtime" Version="2.6.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The trimmer drops this from deps.json even though ProcessModule.FileVersionInfo (used for
+         friendly app names in the pickers) needs it at runtime: FileNotFoundException otherwise. -->
+    <TrimmerRootAssembly Include="System.Diagnostics.FileVersionInfo" />
+  </ItemGroup>
+
+  <!-- A release is Drowsy.exe plus Microsoft.WindowsAppRuntime.Bootstrap.dll (the bootstrapper the
+       settings window uses to reach the Windows App Runtime). The Windows App SDK packages also
+       publish files for features Drowsy doesn't use: the WebView2 control and background tasks. -->
+  <Target Name="LeaveOutUnusedRuntimeFiles" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                             Condition="'%(Filename)%(Extension)' == 'Microsoft.Web.WebView2.Core.dll' or
+                                        '%(Filename)%(Extension)' == 'WebView2Loader.dll' or
+                                        '%(Filename)%(Extension)' == 'Microsoft.Windows.ApplicationModel.Background.UniversalBGTask.dll'" />
+    </ItemGroup>
+  </Target>
+
+</Project>
