@@ -97,7 +97,7 @@ internal static class Program
             Log.Info($"Input device: {d.Kind}: {d.Name} [{d.Key}]");
         foreach (string app in Activity.AudioSource.ListSessionApps())
             Log.Info($"Audio session app: {app}");
-        Log.Info($"Full-screen state: {Activity.SystemStateSource.FullscreenState() ?? "none"}; display requested: {Activity.SystemStateSource.DisplayRequested()}");
+        Log.Info($"Display requested: {Activity.SystemStateSource.DisplayRequested()}");
         Log.Info("--- End diagnose ---");
     }
 

@@ -274,9 +274,6 @@ internal static unsafe partial class Native
     [LibraryImport("shell32.dll")]
     public static partial int Shell_NotifyIconW(uint message, NOTIFYICONDATAW* data);
 
-    [LibraryImport("shell32.dll")]
-    public static partial int SHQueryUserNotificationState(int* state);
-
     [LibraryImport("shell32.dll", StringMarshalling = StringMarshalling.Utf16)]
     public static partial uint ExtractIconExW(string file, int index, nint* large, nint* small, uint count);
 

@@ -34,9 +34,6 @@ public sealed class Config
     /// </summary>
     public List<string> IgnoredAudioApps { get; set; } = ["Elgato.WaveLink"];
 
-    /// <summary>Treat a full-screen app (game, video, presentation) in the foreground as activity.</summary>
-    public bool FullscreenIsActivity { get; set; } = true;
-
     /// <summary>Treat XInput (Xbox-compatible) controller input as activity.</summary>
     public bool ControllerIsActivity { get; set; } = true;
 
