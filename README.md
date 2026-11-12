@@ -17,7 +17,6 @@ signals that really mean someone is using the PC:
 | Keyboard / mouse | A physical keyboard or mouse reports a key, click or movement (via Raw Input) |
 | Audio | An app's own audio session is audibly playing for 3+ seconds — *real* sound, not just an open stream, and not a one-off notification ping. Mixers (Wave Link) are ignored by default because their output just repeats the apps' audio plus mic monitoring |
 | Microphone | An app has the microphone open (calls, recording, dictation) |
-| Full-screen app | A game, video or presentation is full-screen in the foreground |
 | Controller | An XInput (Xbox-compatible) controller changes state (stick drift is ignored) |
 | Display request | An app asks Windows to keep the display on (most video players and games) |
 | Blocking process | A process you list (e.g. `HandBrake`) is running |
@@ -37,8 +36,8 @@ After the configured idle time with none of these, it shows a warning notificati
 - Warning notification before sleeping; any input cancels it
 - Logs the device behind any input after a quiet spell — handy for tracking down phantom input
   that keeps waking or resetting the PC
-- `Drowsy.exe --diagnose` writes the input devices, audio apps and full-screen state it can
-  see to the log — useful for bug reports
+- `Drowsy.exe --diagnose` writes the input devices and audio apps it can see to the log —
+  useful for bug reports
 - One-click install and in-app updates from GitHub Releases
 - Per-user: no admin rights, and no .NET to install
 
@@ -115,7 +114,6 @@ Settings are stored in `%APPDATA%\Drowsy\config.json`:
   "audioMinSeconds": 3,            // audible seconds (within 10 s) before audio counts
   "microphoneIsActivity": true,
   "ignoredAudioApps": ["Elgato.WaveLink"], // process names whose audio and mic use never count
-  "fullscreenIsActivity": true,
   "controllerIsActivity": true,
   "honorDisplayRequests": true,
   "blockingProcesses": [],         // e.g. ["HandBrake", "obs64"]

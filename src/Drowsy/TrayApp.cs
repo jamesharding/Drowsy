@@ -73,7 +73,7 @@ internal sealed unsafe class TrayApp : IDisposable
         Native.SetTimer(_hwnd, AudioTimerId, AudioSource.SampleIntervalMs, 0);
 
         Log.Info($"Started. Sleep after {Config.IdleMinutes} min idle; audio={Config.AudioIsActivity} " +
-                 $"fullscreen={Config.FullscreenIsActivity} controller={Config.ControllerIsActivity} " +
+                 $"controller={Config.ControllerIsActivity} " +
                  $"displayRequests={Config.HonorDisplayRequests} blockingProcesses=[{string.Join(", ", Config.BlockingProcesses)}] " +
                  $"version={Update.Updater.CurrentVersion}");
         if (_welcome is not null) ShowBalloon("Drowsy", _welcome);
@@ -210,9 +210,6 @@ internal sealed unsafe class TrayApp : IDisposable
 
         if (_tick % SlowPollEveryTicks == 0)
         {
-            if (Config.FullscreenIsActivity && SystemStateSource.FullscreenState() is { } fs)
-                _monitor.Mark(Signal.Fullscreen, fs);
-
             if (Config.HonorDisplayRequests && SystemStateSource.DisplayRequested())
                 _monitor.Mark(Signal.DisplayRequest, "an app asked Windows to keep the display on");
 

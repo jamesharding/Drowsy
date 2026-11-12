@@ -55,7 +55,6 @@ internal sealed partial class SettingsWindow : Window
     };
     private readonly ToggleSwitch _audio = NewToggle();
     private readonly ToggleSwitch _microphone = NewToggle();
-    private readonly ToggleSwitch _fullscreen = NewToggle();
     private readonly ToggleSwitch _controller = NewToggle();
     private readonly ToggleSwitch _display = NewToggle();
     private readonly NumberBox _warningSeconds = NewNumberBox(0, 600, 5, 30);
@@ -214,8 +213,6 @@ internal sealed partial class SettingsWindow : Window
             Padded(_ignoredAudioApps.View),
             AudioActivityLink(),
             Divider(),
-            Row("A full-screen app is open", _fullscreen),
-            Divider(),
             Row("A game controller is in use", _controller),
             Divider(),
             Row("An app keeps the screen on", _display),
@@ -365,7 +362,6 @@ internal sealed partial class SettingsWindow : Window
         _startup.IsOn = Startup.IsEnabled;
         _audio.IsOn = _config.AudioIsActivity;
         _microphone.IsOn = _config.MicrophoneIsActivity;
-        _fullscreen.IsOn = _config.FullscreenIsActivity;
         _controller.IsOn = _config.ControllerIsActivity;
         _display.IsOn = _config.HonorDisplayRequests;
         _warningSeconds.Value = _config.WarningSeconds;
@@ -398,7 +394,7 @@ internal sealed partial class SettingsWindow : Window
     private void HookAutoSave()
     {
         foreach (NumberBox n in new[] { _idleMinutes, _warningSeconds, _thresholdDb }) n.ValueChanged += (_, _) => ScheduleSave();
-        foreach (ToggleSwitch t in new[] { _enabled, _audio, _microphone, _fullscreen, _controller, _display, _ignoreInjected, _checkUpdates }) t.Toggled += (_, _) => ScheduleSave();
+        foreach (ToggleSwitch t in new[] { _enabled, _audio, _microphone, _controller, _display, _ignoreInjected, _checkUpdates }) t.Toggled += (_, _) => ScheduleSave();
         foreach (PickerList p in new[] { _processes, _ignoredAudioApps, _ignoredInputDevices }) p.Changed += ScheduleSave;
         _ignoredAudioApps.Changed += () => _audioMonitor?.Invalidate();
         _startup.Toggled += (_, _) =>
@@ -449,7 +445,6 @@ internal sealed partial class SettingsWindow : Window
             WarningSeconds = (int)Value(_warningSeconds, 60),
             AudioIsActivity = _audio.IsOn,
             MicrophoneIsActivity = _microphone.IsOn,
-            FullscreenIsActivity = _fullscreen.IsOn,
             ControllerIsActivity = _controller.IsOn,
             HonorDisplayRequests = _display.IsOn,
             AudioPeakThreshold = (float)Math.Pow(10, Value(_thresholdDb, -60) / 20),
