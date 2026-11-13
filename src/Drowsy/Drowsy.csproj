@@ -12,7 +12,7 @@
 
     <AssemblyName>Drowsy</AssemblyName>
     <RootNamespace>Drowsy</RootNamespace>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Product>Drowsy</Product>
     <Description>Puts Windows to sleep when you're genuinely idle, even when audio drivers keep the system awake.</Description>
 
