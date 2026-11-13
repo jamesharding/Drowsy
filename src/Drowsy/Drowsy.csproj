@@ -12,7 +12,7 @@
 
     <AssemblyName>Drowsy</AssemblyName>
     <RootNamespace>Drowsy</RootNamespace>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <Product>Drowsy</Product>
     <Description>Puts Windows to sleep when you're genuinely idle, even when audio drivers keep the system awake.</Description>
 
@@ -65,6 +65,11 @@
     <PackageReference Include="Microsoft.WindowsAppSDK.WinUI" Version="2.6.5" />
     <!-- Framework-dependent: says which Windows App Runtime (2.6) to use, and provides the bootstrapper. -->
     <PackageReference Include="Microsoft.WindowsAppSDK.Runtime" Version="2.6.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Written out next to the log as the notifications' icon (Windows needs an image file). -->
+    <EmbeddedResource Include="..\..\assets\Drowsy.ico" LogicalName="Drowsy.ico" />
   </ItemGroup>
 
   <ItemGroup>

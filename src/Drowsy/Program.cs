@@ -27,6 +27,16 @@ internal static class Program
             return 0;
         }
 
+        if (Has("--test-toasts")) // TEMP
+        {
+            Log.Info("TEST shown=" + Toasts.Show(Toasts.WarningTag, "Going to sleep soon", "Sleeping in 29s. Move the mouse or press a key to stay awake.", silent: false));
+            Thread.Sleep(int.Parse(args[^1]) * 1000);
+            if (Has("--cancel")) Toasts.Remove(Toasts.WarningTag);
+            Log.Info("TEST sleeping=" + Toasts.Show(Toasts.SleepingTag, "Sleeping", $"Went to sleep at {DateTime.Now:HH:mm}: idle for 10m 00s.", silent: true));
+            Log.Info("TEST history=" + string.Join(",", Windows.UI.Notifications.ToastNotificationManager.History.GetHistory("Drowsy.App").Select(t => t.Tag)));
+            return 0;
+        }
+
         if (Has("--restart"))
         {
             // After an install or update: wait for the old processes, then start the new engine.
