@@ -266,8 +266,13 @@ internal sealed unsafe class TrayApp : IDisposable
         if (!_warningShown && Config.WarningSeconds > 0 && idle < limit)
         {
             _warningShown = true;
+            Log.Info($"Warning shown: sleeping in {Format.Duration(limit - idle)}");
+            // With sound: the banner is easy to miss, and Windows doesn't keep tray balloons in the
+            // notification centre. The chime is far shorter than AudioMinSeconds, so it can't count
+            // as activity and cancel the sleep.
             ShowBalloon("Going to sleep soon",
-                $"Sleeping in {Format.Duration(limit - idle)}. Move the mouse or press a key to stay awake.");
+                $"Sleeping in {Format.Duration(limit - idle)}. Move the mouse or press a key to stay awake.",
+                sound: true);
         }
 
         if (idle >= limit)
@@ -456,12 +461,12 @@ internal sealed unsafe class TrayApp : IDisposable
         Native.Shell_NotifyIconW(Native.NIM_DELETE, &nid);
     }
 
-    private void ShowBalloon(string title, string text)
+    private void ShowBalloon(string title, string text, bool sound = false)
     {
         _balloonOpensUpdates = false;
         NOTIFYICONDATAW nid = NewIconData();
         nid.uFlags = Native.NIF_INFO;
-        nid.dwInfoFlags = Native.NIIF_INFO | Native.NIIF_NOSOUND;
+        nid.dwInfoFlags = Native.NIIF_INFO | (sound ? 0 : Native.NIIF_NOSOUND);
         CopyString(title, nid.szInfoTitle, 64);
         CopyString(text, nid.szInfo, 256);
         Native.Shell_NotifyIconW(Native.NIM_MODIFY, &nid);
