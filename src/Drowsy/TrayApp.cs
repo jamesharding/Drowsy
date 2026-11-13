@@ -259,7 +259,7 @@ internal sealed unsafe class TrayApp : IDisposable
 
         if (!Config.Enabled || IsPaused || now < _sleepBlockedUntil || idle < warnAt)
         {
-            _warningShown = false;
+            CancelWarning();
             return;
         }
 
@@ -267,25 +267,36 @@ internal sealed unsafe class TrayApp : IDisposable
         {
             _warningShown = true;
             Log.Info($"Warning shown: sleeping in {Format.Duration(limit - idle)}");
-            // With sound: the banner is easy to miss, and Windows doesn't keep tray balloons in the
-            // notification centre. The chime is far shorter than AudioMinSeconds, so it can't count
-            // as activity and cancel the sleep.
-            ShowBalloon("Going to sleep soon",
-                $"Sleeping in {Format.Duration(limit - idle)}. Move the mouse or press a key to stay awake.",
-                sound: true);
+            // With sound, so it isn't missed. The chime is far shorter than AudioMinSeconds, so it
+            // can't count as activity and cancel the sleep.
+            string title = "Going to sleep soon";
+            string text = $"Sleeping in {Format.Duration(limit - idle)}. Move the mouse or press a key to stay awake.";
+            if (!Toasts.Show(Toasts.WarningTag, title, text, silent: false)) ShowBalloon(title, text, sound: true);
         }
 
         if (idle >= limit)
         {
+            // The warning stays in the notification centre, next to the "sleeping" entry.
             _warningShown = false;
             GoToSleep(SleepTrigger.Idle, $"idle for {Format.Duration(idle)}");
         }
+    }
+
+    /// <summary>Activity (or a pause) cancelled the sleep: the warning no longer applies.</summary>
+    private void CancelWarning()
+    {
+        if (!_warningShown) return;
+        _warningShown = false;
+        Toasts.Remove(Toasts.WarningTag);
     }
 
     private void GoToSleep(string trigger, string reason)
     {
         Log.Info($"Sleeping: {reason}");
         RecordSleep(trigger);
+        // Shown before the request (nothing runs once the PC is asleep), so it's there on waking.
+        Toasts.Show(Toasts.SleepingTag, "Sleeping",
+            $"Went to sleep at {DateTime.Now:HH:mm}: {reason}.", silent: true);
         if (Power.TrySleep(out int error))
         {
             // Returns after resume on most systems; the resume broadcast also resets timers.
@@ -297,6 +308,7 @@ internal sealed unsafe class TrayApp : IDisposable
             _history.Save();
             _sleepBlockedUntil = ActivityMonitor.Now + SleepRetryBackoffMs;
             Log.Error($"SetSuspendState failed (Win32 error {error}); retrying in {Format.Duration(SleepRetryBackoffMs)}");
+            Toasts.Remove(Toasts.SleepingTag);
             ShowBalloon("Couldn't sleep", $"Windows refused the sleep request (error {error}). See the log for details.");
         }
     }
@@ -600,7 +612,7 @@ internal sealed unsafe class TrayApp : IDisposable
     private void Pause(int? minutes)
     {
         _pausedUntil = minutes is { } m ? ActivityMonitor.Now + m * 60_000L : long.MaxValue;
-        _warningShown = false;
+        CancelWarning();
         Log.Info(minutes is { } mm ? $"Paused for {mm} min" : "Paused until resumed");
     }
 
